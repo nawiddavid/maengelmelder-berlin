@@ -142,6 +142,54 @@ router.get('/debug', async (req, res, next) => {
 });
 
 /**
+ * GET /api/auth/test-login
+ * Testet Login-Logik und gibt detaillierte Fehlerinfos
+ */
+router.get('/test-login', async (req, res) => {
+  try {
+    const testEmail = 'admin@maengelmelder.de';
+    const testPassword = 'admin123';
+    
+    // 1. Admin finden
+    const admin = await adminRepo.findByEmail(testEmail);
+    if (!admin) {
+      return res.json({ step: 1, error: 'Admin not found', email: testEmail });
+    }
+    
+    // 2. Password Hash prüfen
+    if (!admin.passwordHash) {
+      return res.json({ step: 2, error: 'No password hash stored', adminId: admin.id });
+    }
+    
+    // 3. bcrypt compare testen
+    let passwordValid;
+    try {
+      passwordValid = await bcrypt.compare(testPassword, admin.passwordHash);
+    } catch (bcryptError) {
+      return res.json({ step: 3, error: 'bcrypt.compare failed', message: bcryptError.message });
+    }
+    
+    if (!passwordValid) {
+      return res.json({ 
+        step: 4, 
+        error: 'Password mismatch',
+        hashLength: admin.passwordHash.length,
+        hashPrefix: admin.passwordHash.substring(0, 10)
+      });
+    }
+    
+    // 5. Alles OK
+    res.json({
+      success: true,
+      message: 'Login würde funktionieren!',
+      admin: { id: admin.id, email: admin.email }
+    });
+  } catch (error) {
+    res.json({ error: 'Unexpected error', message: error.message, stack: error.stack });
+  }
+});
+
+/**
  * GET /api/auth/seed-admin
  * Erstellt Admin falls keiner existiert (für Deployment)
  */
