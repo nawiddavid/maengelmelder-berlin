@@ -3,68 +3,248 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Hackathon Hallo Welt</title>
+    <title>Mängelmelder | Stadt Berlin - Probleme im öffentlichen Raum melden</title>
     <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin: 1.5rem 0;
+      }
+      .feature-card {
+        background: var(--berlin-gray-50);
+        border: 2px solid var(--berlin-gray-200);
+        border-radius: var(--radius-lg);
+        padding: 1.75rem 1.5rem;
+        text-align: center;
+        transition: all 0.2s ease;
+      }
+      .feature-card:hover {
+        border-color: var(--berlin-red);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+      }
+      .feature-card .icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+      .feature-card h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--berlin-gray-800);
+      }
+      .feature-card p {
+        font-size: 0.9rem;
+        color: var(--berlin-gray-600);
+        margin: 0;
+        line-height: 1.5;
+      }
+      .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+      }
+      .btn-large {
+        padding: 1.125rem 2.25rem;
+        font-size: 1.125rem;
+      }
+      .stats-bar {
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        padding: 1.5rem;
+        background: var(--berlin-gray-50);
+        border-radius: var(--radius-lg);
+        margin-top: 1.5rem;
+      }
+      .stat-item {
+        text-align: center;
+      }
+      .stat-item .number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--berlin-red);
+      }
+      .stat-item .label {
+        font-size: 0.85rem;
+        color: var(--berlin-gray-600);
+      }
+      .info-section {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-top: 1rem;
+      }
+      .info-section .info-icon {
+        font-size: 4rem;
+        flex-shrink: 0;
+      }
+      .info-section .info-content {
+        text-align: left;
+      }
+      .info-section .info-content h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.25rem;
+        color: var(--berlin-gray-800);
+      }
+      .info-section .info-content p {
+        margin: 0;
+        color: var(--berlin-gray-600);
+      }
+      @media (max-width: 600px) {
+        .stats-bar {
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+        .info-section {
+          flex-direction: column;
+          text-align: center;
+        }
+        .info-section .info-content {
+          text-align: center;
+        }
+      }
+    </style>
   </head>
   <body>
+    <!-- Berlin Header -->
+    <header class="berlin-header">
+      <div class="berlin-header__inner">
+        <a href="/" class="berlin-logo">
+          <div class="berlin-logo__bear">🐻</div>
+          <div class="berlin-logo__text">
+            Mängelmelder
+            <span>Stadt Berlin</span>
+          </div>
+        </a>
+      </div>
+    </header>
+
     <main class="page">
       <header class="hero">
-        <h1>Nawids Hackathon Starter</h1>
-        <p>Express · SQLite · Vitest – fertig zum Loslegen.</p>
-        <div class="hero__cta">
-          <button id="refreshBtn" class="btn">Aktuelle Grüße laden</button>
-          <button id="simulateErrorBtn" class="btn btn--ghost">
-            Fehlerfall zeigen
-          </button>
+        <h1>Mängel melden – einfach & schnell</h1>
+        <p>Helfen Sie mit, Berlin besser zu machen. Melden Sie Probleme im öffentlichen Raum.</p>
+        <div class="cta-buttons">
+          <a href="/report.html" class="btn btn--white btn-large">📝 Jetzt melden</a>
+          <a href="/status.html" class="btn btn--outline btn-large" style="border-color: white; color: white;">🔍 Status prüfen</a>
         </div>
       </header>
 
       <section class="card">
-        <h2>Aktueller Grüßeintrag</h2>
-        <div id="helloMessage" class="hello">Lade Begrüßung…</div>
+        <div class="card__header">
+          <h2>So funktioniert's</h2>
+          <span class="badge badge--secondary">4 einfache Schritte</span>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="icon">📸</div>
+            <h3>1. Foto aufnehmen</h3>
+            <p>Fotografieren Sie das Problem mit Ihrem Smartphone</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">📍</div>
+            <h3>2. Standort angeben</h3>
+            <p>Per GPS oder Adresseingabe – Sie entscheiden</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">✍️</div>
+            <h3>3. Beschreiben</h3>
+            <p>Kurze Beschreibung des Problems hinzufügen</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">✅</div>
+            <h3>4. Fertig!</h3>
+            <p>Meldung wird automatisch weitergeleitet</p>
+          </div>
+        </div>
       </section>
 
       <section class="card">
         <div class="card__header">
-          <h2>Messages aus SQLite</h2>
-          <span id="messageCount" class="badge">0</span>
+          <h2>Was können Sie melden?</h2>
         </div>
-        <ul id="messageList" class="message-list"></ul>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="icon">🗑️</div>
+            <h3>Müll</h3>
+            <p>Illegale Müllablagerungen, volle Container, Sperrmüll</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">🚧</div>
+            <h3>Schäden</h3>
+            <p>Kaputte Laternen, Schlaglöcher, defekte Ampeln & Schilder</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">🎨</div>
+            <h3>Vandalismus</h3>
+            <p>Graffiti, Beschädigungen an öffentlichem Eigentum</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">❓</div>
+            <h3>Sonstiges</h3>
+            <p>Alles andere, was der Stadt gemeldet werden sollte</p>
+          </div>
+        </div>
       </section>
 
       <section class="card">
-        <h2>Neuen Eintrag speichern</h2>
-        <form id="messageForm" class="form">
-          <label for="messageText">Text</label>
-          <input
-            id="messageText"
-            name="text"
-            placeholder="Was möchtest du den Teilnehmenden sagen?"
-            maxlength="256"
-            required
-          />
-          <div class="form__actions">
-            <button type="submit" class="btn">Speichern</button>
-            <button type="button" id="clearBtn" class="btn btn--ghost">
-              Formular leeren
-            </button>
+        <div class="card__header">
+          <h2>Warum den Mängelmelder nutzen?</h2>
+        </div>
+        
+        <div class="info-section">
+          <div class="info-icon">⚡</div>
+          <div class="info-content">
+            <h3>Schnell & unkompliziert</h3>
+            <p>Keine Registrierung erforderlich. In unter 60 Sekunden erledigt. Einfach Foto machen, Standort angeben und abschicken.</p>
           </div>
-        </form>
+        </div>
+
+        <div class="info-section">
+          <div class="info-icon">📱</div>
+          <div class="info-content">
+            <h3>Optimiert für Smartphones</h3>
+            <p>Direkt vor Ort nutzen: Kamera und GPS Ihres Smartphones werden automatisch unterstützt.</p>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-icon">🔔</div>
+          <div class="info-content">
+            <h3>Transparente Verfolgung</h3>
+            <p>Mit Ihrer Ticket-Nummer können Sie jederzeit den Bearbeitungsstand Ihrer Meldung einsehen.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" style="text-align: center;">
+        <div class="card__header" style="justify-content: center;">
+          <h2>Jetzt Mangel melden</h2>
+        </div>
+        <p style="margin-bottom: 1.5rem; color: var(--berlin-gray-600);">
+          Gemeinsam für ein sauberes und sicheres Berlin.
+        </p>
+        <div class="cta-buttons">
+          <a href="/report.html" class="btn btn-large">📝 Meldung erstellen</a>
+        </div>
+        <p style="margin-top: 2rem; font-size: 0.9rem; color: var(--berlin-gray-500);">
+          <a href="/admin/login.html" style="color: var(--berlin-gray-500);">Admin-Bereich →</a>
+        </p>
       </section>
     </main>
 
-    <dialog id="appDialog">
-      <form method="dialog" class="dialog">
-        <h3 id="dialogTitle"></h3>
-        <p id="dialogMessage"></p>
-        <menu class="dialog__actions">
-          <button value="cancel" class="btn btn--ghost">Schließen</button>
-          <button value="confirm" class="btn">OK</button>
-        </menu>
-      </form>
-    </dialog>
-
-    <script type="module" src="/app.js"></script>
+    <!-- Footer -->
+    <footer class="footer">
+      <div>© 2026 Stadt Berlin – Mängelmelder</div>
+      <div class="footer__links">
+        <a href="#">Impressum</a>
+        <a href="#">Datenschutz</a>
+        <a href="#">Kontakt</a>
+      </div>
+    </footer>
   </body>
 </html>
-

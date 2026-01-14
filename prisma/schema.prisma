@@ -7,11 +7,98 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Bestehendes Model
 model Message {
-  id         Int      @id @default(autoincrement())
-  text       String
-  createdAt  DateTime @default(now()) @map("created_at")
+  id        Int      @id @default(autoincrement())
+  text      String
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("messages")
 }
 
+// ============================================================
+// MÄNGELMELDER MODELS
+// ============================================================
+
+model Report {
+  id              String   @id @default(cuid())
+  ticketId        String   @unique
+  category        String   // TRASH, DAMAGE, VANDALISM, OTHER
+  status          String   @default("SUBMITTED") // SUBMITTED, FORWARDED, IN_PROGRESS, DONE
+  latitude        Float
+  longitude       Float
+  address         String?
+  district        String?
+  comment         String
+  urgency         String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  contactEmail    String?
+  deviceId        String
+  privacyAccepted Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  photos    Photo[]
+  auditLogs AuditLog[]
+
+  @@index([ticketId])
+  @@index([status])
+  @@index([category])
+  @@index([district])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+model Photo {
+  id          String   @id @default(cuid())
+  reportId    String
+  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  filename    String
+  storagePath String
+  mimeType    String
+  size        Int
+  createdAt   DateTime @default(now())
+
+  @@index([reportId])
+  @@map("photos")
+}
+
+model RoutingRule {
+  id             String   @id @default(cuid())
+  category       String   // Category value or "*" for all
+  district       String   // District name or "*" for all
+  recipientEmail String
+  recipientName  String
+  priority       Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([category, district])
+  @@map("routing_rules")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  reportId    String
+  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  action      String   // CREATED, FORWARDED, STATUS_CHANGED, REFORWARDED, DELETED
+  details     String   // JSON string
+  performedBy String   // "system" or Admin ID
+  timestamp   DateTime @default(now())
+
+  @@index([reportId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+model Admin {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("VIEWER") // ADMIN, VIEWER
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@map("admins")
+}

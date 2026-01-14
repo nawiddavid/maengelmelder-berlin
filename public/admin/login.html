@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | Mängelmelder Berlin</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .login-page {
+      min-height: calc(100vh - 150px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 1rem;
+    }
+    
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    
+    .login-icon {
+      text-align: center;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .error-message {
+      background: #FFE3E3;
+      border: 2px solid var(--danger);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      color: #C92A2A;
+      display: none;
+      margin-bottom: 1rem;
+    }
+    
+    .error-message.active {
+      display: block;
+    }
+    
+    .setup-info {
+      background: #E7F5FF;
+      border: 2px solid #228BE6;
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      color: #1864AB;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Berlin Header -->
+  <header class="berlin-header">
+    <div class="berlin-header__inner">
+      <a href="/" class="berlin-logo">
+        <div class="berlin-logo__bear">🐻</div>
+        <div class="berlin-logo__text">
+          Mängelmelder
+          <span>Stadt Berlin</span>
+        </div>
+      </a>
+    </div>
+  </header>
+  
+  <div class="login-page">
+    <div class="login-container">
+      <div class="card">
+        <div class="login-icon">🔐</div>
+        <div class="card__header" style="justify-content: center;">
+          <h2>Admin-Bereich</h2>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <form class="login-form" id="loginForm">
+          <div class="form">
+            <label for="email">E-Mail-Adresse</label>
+            <input type="email" id="email" name="email" placeholder="admin@berlin.de" required autofocus>
+          </div>
+          
+          <div class="form">
+            <label for="password">Passwort</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required>
+          </div>
+          
+          <button type="submit" class="btn" style="margin-top: 0.5rem;">Anmelden</button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 2rem;">
+          <a href="/" style="color: var(--berlin-gray-500);">← Zurück zur Startseite</a>
+        </p>
+      </div>
+      
+      <!-- Setup-Formular (nur sichtbar wenn noch kein Admin existiert) -->
+      <div class="card" id="setupCard" style="display: none; margin-top: 1rem;">
+        <div class="card__header">
+          <h2>🚀 Ersteinrichtung</h2>
+        </div>
+        
+        <div class="setup-info">
+          Es existiert noch kein Administrator. Erstellen Sie den ersten Admin-Account.
+        </div>
+        
+        <form class="login-form" id="setupForm">
+          <div class="form">
+            <label for="setupName">Vollständiger Name</label>
+            <input type="text" id="setupName" placeholder="Max Mustermann" required>
+          </div>
+          <div class="form">
+            <label for="setupEmail">E-Mail-Adresse</label>
+            <input type="email" id="setupEmail" placeholder="admin@berlin.de" required>
+          </div>
+          <div class="form">
+            <label for="setupPassword">Passwort (min. 8 Zeichen)</label>
+            <input type="password" id="setupPassword" placeholder="••••••••" minlength="8" required>
+          </div>
+          <button type="submit" class="btn">Admin-Account erstellen</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="footer">
+    <div>© 2026 Stadt Berlin – Mängelmelder</div>
+  </footer>
+  
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const setupForm = document.getElementById('setupForm');
+    const setupCard = document.getElementById('setupCard');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    // Prüfen ob bereits eingeloggt
+    checkAuth();
+    
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          window.location.href = '/admin/';
+        }
+      } catch (e) {}
+    }
+    
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMessage.classList.remove('active');
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          // Wenn 401 und keine Admins existieren, Setup anzeigen
+          if (response.status === 401) {
+            // Versuchen Setup aufzurufen
+            const setupCheck = await fetch('/api/auth/setup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: 'test@test.de', password: 'testtest', name: 'Test' })
+            });
+            
+            // Wenn Setup nicht "already complete" zurückgibt, anzeigen
+            if (setupCheck.status !== 400) {
+              setupCard.style.display = 'block';
+            }
+          }
+          throw new Error(data.message || 'Login fehlgeschlagen');
+        }
+        
+        window.location.href = '/admin/';
+        
+      } catch (error) {
+        errorMessage.textContent = '⚠️ ' + error.message;
+        errorMessage.classList.add('active');
+      }
+    });
+    
+    setupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('setupName').value;
+      const email = document.getElementById('setupEmail').value;
+      const password = document.getElementById('setupPassword').value;
+      
+      try {
+        const response = await fetch('/api/auth/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Setup fehlgeschlagen');
+        }
+        
+        alert('✅ Admin-Account erstellt! Sie können sich jetzt anmelden.');
+        setupCard.style.display = 'none';
+        document.getElementById('email').value = email;
+        document.getElementById('password').focus();
+        
+      } catch (error) {
+        alert('❌ Fehler: ' + error.message);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status prüfen | Mängelmelder Berlin</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .status-form {
+      margin-bottom: 2rem;
+    }
+    
+    .status-input-group {
+      display: flex;
+      gap: 0.75rem;
+    }
+    
+    .status-input-group input {
+      flex: 1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 1rem 1.25rem;
+      border: 2px solid var(--berlin-gray-300);
+      border-radius: var(--radius-md);
+      font-size: 1.1rem;
+      font-family: inherit;
+    }
+    
+    .status-input-group input:focus {
+      outline: none;
+      border-color: var(--berlin-red);
+      box-shadow: 0 0 0 3px rgba(226, 0, 26, 0.15);
+    }
+    
+    .status-result {
+      display: none;
+    }
+    
+    .status-result.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .status-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      background: var(--berlin-gray-50);
+      border-radius: var(--radius-lg);
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 0.5rem 1.25rem;
+      border-radius: 100px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status-badge.SUBMITTED {
+      background: #FFF3CD;
+      color: #856404;
+    }
+    
+    .status-badge.FORWARDED {
+      background: #E7F5FF;
+      color: #1864AB;
+    }
+    
+    .status-badge.IN_PROGRESS {
+      background: #F3D9FA;
+      color: #862E9C;
+    }
+    
+    .status-badge.DONE {
+      background: #D3F9D8;
+      color: #2B8A3E;
+    }
+    
+    .ticket-id-display {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--berlin-gray-800);
+    }
+    
+    .status-details {
+      margin-top: 1.5rem;
+    }
+    
+    .status-detail-row {
+      display: flex;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--berlin-gray-200);
+    }
+    
+    .status-detail-row:last-child {
+      border-bottom: none;
+    }
+    
+    .status-detail-row .label {
+      width: 160px;
+      color: var(--berlin-gray-500);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    
+    .status-detail-row .value {
+      flex: 1;
+      color: var(--berlin-gray-800);
+    }
+    
+    .timeline {
+      margin-top: 2rem;
+      padding-left: 1.5rem;
+      border-left: 3px solid var(--berlin-gray-300);
+    }
+    
+    .timeline-item {
+      position: relative;
+      padding: 0 0 1.5rem 1.5rem;
+    }
+    
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -9px;
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      background: var(--berlin-gray-400);
+      border: 3px solid var(--berlin-white);
+      border-radius: 50%;
+    }
+    
+    .timeline-item.current::before {
+      background: var(--berlin-red);
+      box-shadow: 0 0 0 4px rgba(226, 0, 26, 0.2);
+    }
+    
+    .timeline-date {
+      font-size: 0.85rem;
+      color: var(--berlin-gray-500);
+    }
+    
+    .timeline-status {
+      font-weight: 700;
+      margin: 0.25rem 0;
+      color: var(--berlin-gray-800);
+    }
+    
+    .timeline-detail {
+      font-size: 0.9rem;
+      color: var(--berlin-gray-600);
+    }
+    
+    .saved-tickets {
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 2px solid var(--berlin-gray-200);
+    }
+    
+    .saved-tickets h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--berlin-gray-600);
+      margin-bottom: 1rem;
+    }
+    
+    .saved-ticket-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      background: var(--berlin-gray-50);
+      border: 2px solid var(--berlin-gray-200);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .saved-ticket-item:hover {
+      background: var(--berlin-white);
+      border-color: var(--berlin-red);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .saved-ticket-item .ticket-id {
+      font-weight: 600;
+      color: var(--berlin-gray-800);
+    }
+    
+    .saved-ticket-item .ticket-meta {
+      font-size: 0.85rem;
+      color: var(--berlin-gray-500);
+    }
+    
+    .error-message {
+      background: #FFE3E3;
+      border: 2px solid var(--danger);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      color: #C92A2A;
+      display: none;
+      margin-bottom: 1rem;
+    }
+    
+    .error-message.active {
+      display: block;
+    }
+    
+    @media (max-width: 500px) {
+      .status-input-group {
+        flex-direction: column;
+      }
+      
+      .status-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      
+      .status-detail-row {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      
+      .status-detail-row .label {
+        width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Berlin Header -->
+  <header class="berlin-header">
+    <div class="berlin-header__inner">
+      <a href="/" class="berlin-logo">
+        <div class="berlin-logo__bear">🐻</div>
+        <div class="berlin-logo__text">
+          Mängelmelder
+          <span>Stadt Berlin</span>
+        </div>
+      </a>
+    </div>
+  </header>
+  
+  <div class="page">
+    <div class="card">
+      <div class="card__header">
+        <h2>🔍 Status prüfen</h2>
+      </div>
+      
+      <div class="status-form">
+        <p style="margin-bottom: 1rem; color: var(--berlin-gray-600);">
+          Geben Sie Ihre Ticket-ID ein, um den aktuellen Bearbeitungsstand Ihrer Meldung einzusehen.
+        </p>
+        
+        <div class="status-input-group">
+          <input 
+            type="text" 
+            id="ticketIdInput" 
+            placeholder="z.B. MU-20260114-A7K2X"
+            pattern="[A-Za-z]{2}-\d{8}-[A-Za-z0-9]{5}"
+          >
+          <button type="button" class="btn" id="checkStatusBtn">Status prüfen</button>
+        </div>
+      </div>
+      
+      <div class="error-message" id="errorMessage"></div>
+      
+      <div class="status-result" id="statusResult">
+        <div class="status-header">
+          <span class="status-badge" id="statusBadge">-</span>
+          <span class="ticket-id-display" id="ticketIdDisplay">-</span>
+        </div>
+        
+        <div class="status-details">
+          <div class="status-detail-row">
+            <span class="label">Kategorie</span>
+            <span class="value" id="categoryValue">-</span>
+          </div>
+          <div class="status-detail-row">
+            <span class="label">Weitergeleitet an</span>
+            <span class="value" id="forwardedToValue">-</span>
+          </div>
+          <div class="status-detail-row">
+            <span class="label">Erstellt am</span>
+            <span class="value" id="createdAtValue">-</span>
+          </div>
+          <div class="status-detail-row">
+            <span class="label">Zuletzt aktualisiert</span>
+            <span class="value" id="updatedAtValue">-</span>
+          </div>
+        </div>
+        
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1rem; color: var(--berlin-gray-600);">Bearbeitungsverlauf</h3>
+        <div class="timeline" id="timeline">
+          <!-- Dynamisch gefüllt -->
+        </div>
+      </div>
+      
+      <div class="saved-tickets" id="savedTickets">
+        <h3>📋 Ihre letzten Meldungen</h3>
+        <div id="savedTicketsList"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="footer">
+    <div>© 2026 Stadt Berlin – Mängelmelder</div>
+    <div class="footer__links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+      <a href="#">Kontakt</a>
+    </div>
+  </footer>
+  
+  <script>
+    const STATUS_LABELS = {
+      'SUBMITTED': 'Eingereicht',
+      'FORWARDED': 'Weitergeleitet',
+      'IN_PROGRESS': 'In Bearbeitung',
+      'DONE': 'Erledigt'
+    };
+    
+    const CATEGORY_LABELS = {
+      'TRASH': '🗑️ Müll',
+      'DAMAGE': '🚧 Schäden',
+      'VANDALISM': '🎨 Vandalismus',
+      'OTHER': '❓ Sonstiges'
+    };
+    
+    const ticketInput = document.getElementById('ticketIdInput');
+    const checkBtn = document.getElementById('checkStatusBtn');
+    const errorMessage = document.getElementById('errorMessage');
+    const statusResult = document.getElementById('statusResult');
+    
+    // URL-Parameter prüfen
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketIdParam = urlParams.get('ticket');
+    if (ticketIdParam) {
+      ticketInput.value = ticketIdParam;
+      checkStatus(ticketIdParam);
+    }
+    
+    // Event Listeners
+    checkBtn.addEventListener('click', () => {
+      const ticketId = ticketInput.value.trim().toUpperCase();
+      if (ticketId) {
+        checkStatus(ticketId);
+      }
+    });
+    
+    ticketInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const ticketId = ticketInput.value.trim().toUpperCase();
+        if (ticketId) {
+          checkStatus(ticketId);
+        }
+      }
+    });
+    
+    // Gespeicherte Tickets laden
+    loadSavedTickets();
+    
+    async function checkStatus(ticketId) {
+      errorMessage.classList.remove('active');
+      statusResult.classList.remove('active');
+      
+      try {
+        const response = await fetch(`/api/reports/${ticketId}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Meldung nicht gefunden');
+        }
+        
+        displayStatus(data);
+        
+        // URL aktualisieren
+        history.replaceState(null, '', `?ticket=${ticketId}`);
+        
+      } catch (error) {
+        errorMessage.textContent = '⚠️ ' + error.message;
+        errorMessage.classList.add('active');
+      }
+    }
+    
+    function displayStatus(data) {
+      document.getElementById('statusBadge').textContent = STATUS_LABELS[data.status] || data.status;
+      document.getElementById('statusBadge').className = `status-badge ${data.status}`;
+      document.getElementById('ticketIdDisplay').textContent = data.ticketId;
+      document.getElementById('categoryValue').textContent = CATEGORY_LABELS[data.category] || data.category;
+      document.getElementById('forwardedToValue').textContent = data.forwardedTo || 'Wird bearbeitet...';
+      document.getElementById('createdAtValue').textContent = formatDate(data.createdAt);
+      document.getElementById('updatedAtValue').textContent = formatDate(data.updatedAt);
+      
+      // Timeline erstellen
+      const timeline = document.getElementById('timeline');
+      timeline.innerHTML = '';
+      
+      const statusOrder = ['SUBMITTED', 'FORWARDED', 'IN_PROGRESS', 'DONE'];
+      const currentIndex = statusOrder.indexOf(data.status);
+      
+      statusOrder.forEach((status, index) => {
+        if (index <= currentIndex) {
+          const item = document.createElement('div');
+          item.className = `timeline-item ${index === currentIndex ? 'current' : ''}`;
+          item.innerHTML = `
+            <div class="timeline-date">${index === 0 ? formatDate(data.createdAt) : (index === currentIndex ? formatDate(data.updatedAt) : '')}</div>
+            <div class="timeline-status">${STATUS_LABELS[status]}</div>
+            ${status === 'FORWARDED' && data.forwardedTo ? `<div class="timeline-detail">An: ${data.forwardedTo}</div>` : ''}
+          `;
+          timeline.appendChild(item);
+        }
+      });
+      
+      statusResult.classList.add('active');
+    }
+    
+    function loadSavedTickets() {
+      const savedTickets = JSON.parse(localStorage.getItem('maengelmelder_tickets') || '[]');
+      const container = document.getElementById('savedTicketsList');
+      const section = document.getElementById('savedTickets');
+      
+      if (savedTickets.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      
+      container.innerHTML = '';
+      savedTickets.forEach(ticket => {
+        const item = document.createElement('div');
+        item.className = 'saved-ticket-item';
+        item.innerHTML = `
+          <span class="ticket-id">${ticket.ticketId}</span>
+          <span class="ticket-meta">${CATEGORY_LABELS[ticket.category] || ''} • ${formatDate(ticket.createdAt)}</span>
+        `;
+        item.addEventListener('click', () => {
+          ticketInput.value = ticket.ticketId;
+          checkStatus(ticket.ticketId);
+        });
+        container.appendChild(item);
+      });
+    }
+    
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  </script>
+</body>
+</html>

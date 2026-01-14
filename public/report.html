@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meldung erstellen | Mängelmelder</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <style>
+    /* Mängelmelder spezifische Styles - Berlin Design */
+    .stepper {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      padding: 0;
+      list-style: none;
+    }
+    
+    .stepper li {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      padding: 0.5rem;
+    }
+    
+    .stepper li::before {
+      content: attr(data-step);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 0.5rem;
+      border: 2px solid var(--berlin-gray-300);
+      border-radius: 50%;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--berlin-gray-500);
+      background: var(--berlin-white);
+      transition: all 0.3s ease;
+    }
+    
+    .stepper li.active::before {
+      border-color: var(--berlin-red);
+      color: var(--berlin-red);
+      box-shadow: 0 0 0 4px rgba(226, 0, 26, 0.1);
+    }
+    
+    .stepper li.completed::before {
+      content: '✓';
+      background: var(--berlin-red);
+      border-color: var(--berlin-red);
+      color: var(--berlin-white);
+    }
+    
+    .stepper li::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: var(--berlin-gray-300);
+      z-index: -1;
+    }
+    
+    .stepper li.completed::after {
+      background: var(--berlin-red);
+    }
+    
+    .stepper li:last-child::after {
+      display: none;
+    }
+    
+    .step-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--berlin-gray-500);
+    }
+    
+    .stepper li.active .step-label {
+      color: var(--berlin-red);
+    }
+    
+    .stepper li.completed .step-label {
+      color: var(--berlin-gray-700);
+    }
+    
+    /* Form Steps */
+    .form-step {
+      display: none;
+    }
+    
+    .form-step.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Kategorie-Kacheln */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .category-tile {
+      padding: 1.5rem 1rem;
+      border: 2px solid var(--berlin-gray-300);
+      border-radius: var(--radius-lg);
+      background: var(--berlin-white);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .category-tile:hover {
+      border-color: var(--berlin-red);
+      background: var(--berlin-gray-50);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .category-tile.selected {
+      border-color: var(--berlin-red);
+      background: rgba(226, 0, 26, 0.05);
+      box-shadow: 0 0 0 3px rgba(226, 0, 26, 0.15);
+    }
+    
+    .category-tile .icon {
+      font-size: 2.5rem;
+    }
+    
+    .category-tile .label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--berlin-gray-700);
+    }
+    
+    .category-tile.selected .label {
+      color: var(--berlin-red);
+    }
+    
+    /* Foto-Upload */
+    .photo-upload {
+      border: 2px dashed var(--berlin-gray-300);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 1rem;
+      background: var(--berlin-gray-50);
+    }
+    
+    .photo-upload:hover {
+      border-color: var(--berlin-red);
+      background: var(--berlin-white);
+    }
+    
+    .photo-upload.has-photo {
+      border-style: solid;
+      border-color: var(--berlin-red);
+      background: var(--berlin-white);
+    }
+    
+    .photo-preview {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    
+    .photo-preview img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border: 2px solid var(--berlin-gray-200);
+      border-radius: var(--radius-md);
+    }
+    
+    .photo-preview .remove-photo {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 24px;
+      height: 24px;
+      background: var(--berlin-red);
+      border: 2px solid var(--berlin-white);
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .photo-item {
+      position: relative;
+    }
+    
+    /* Karte */
+    #map {
+      height: 300px;
+      border: 2px solid var(--berlin-gray-300);
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+    }
+    
+    .location-info {
+      background: var(--berlin-gray-50);
+      padding: 1rem 1.25rem;
+      border-left: 4px solid var(--berlin-red);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    /* Location Tabs */
+    .location-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1rem;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 2px solid var(--berlin-gray-300);
+    }
+    
+    .location-tab {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border: none;
+      background: var(--berlin-gray-50);
+      color: var(--berlin-gray-600);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    
+    .location-tab:first-child {
+      border-right: 1px solid var(--berlin-gray-300);
+    }
+    
+    .location-tab:hover {
+      background: var(--berlin-gray-100);
+      color: var(--berlin-gray-800);
+    }
+    
+    .location-tab.active {
+      background: var(--berlin-red);
+      color: var(--berlin-white);
+    }
+    
+    .location-method {
+      display: none;
+    }
+    
+    .location-method.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    /* Adresssuche */
+    .address-search {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    
+    .address-search input {
+      width: 100%;
+      padding: 1rem;
+      padding-right: 55px;
+      border: 2px solid var(--berlin-gray-300);
+      border-radius: var(--radius-md);
+      background: var(--berlin-white);
+      color: var(--berlin-gray-900);
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    
+    .address-search input:focus {
+      outline: none;
+      border-color: var(--berlin-red);
+      box-shadow: 0 0 0 3px rgba(226, 0, 26, 0.15);
+    }
+    
+    .address-search-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 0.6rem 0.9rem;
+      background: var(--berlin-red);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--berlin-white);
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background 0.2s ease;
+    }
+    
+    .address-search-btn:hover {
+      background: var(--berlin-red-dark);
+    }
+    
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--berlin-white);
+      border: 2px solid var(--berlin-gray-300);
+      border-top: none;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .search-results.active {
+      display: block;
+    }
+    
+    .search-result-item {
+      padding: 0.875rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid var(--berlin-gray-200);
+      font-size: 0.9rem;
+      transition: background 0.2s ease;
+      color: var(--berlin-gray-800);
+    }
+    
+    .search-result-item:hover {
+      background: var(--berlin-gray-50);
+    }
+    
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+    
+    .search-loading {
+      padding: 1rem;
+      text-align: center;
+      color: var(--berlin-gray-500);
+    }
+    
+    .gps-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding: 1rem 1.25rem;
+      background: var(--berlin-gray-50);
+      border: 2px solid var(--berlin-gray-300);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+    }
+    
+    .gps-status.success {
+      border-color: var(--success);
+      background: #D3F9D8;
+      color: #2B8A3E;
+    }
+    
+    .gps-status.error {
+      border-color: var(--warning);
+      background: #FFF3CD;
+      color: #856404;
+    }
+    
+    .gps-status .icon {
+      font-size: 1.3rem;
+    }
+    
+    /* Kommentar */
+    .form textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 1rem;
+      border: 2px solid var(--berlin-gray-300);
+      border-radius: var(--radius-md);
+      background: var(--berlin-white);
+      color: var(--berlin-gray-900);
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+    }
+    
+    .form textarea:focus {
+      outline: none;
+      border-color: var(--berlin-red);
+      box-shadow: 0 0 0 3px rgba(226, 0, 26, 0.15);
+    }
+    
+    .char-count {
+      text-align: right;
+      font-size: 0.85rem;
+      color: var(--berlin-gray-500);
+      margin-top: 0.5rem;
+    }
+    
+    .char-count.warning {
+      color: #E67700;
+    }
+    
+    .char-count.error {
+      color: var(--danger);
+    }
+    
+    /* Optional Fields */
+    .optional-section {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 2px solid var(--berlin-gray-200);
+    }
+    
+    .optional-section h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--berlin-gray-700);
+      margin-bottom: 1.25rem;
+    }
+    
+    /* Urgency Buttons */
+    .urgency-buttons {
+      display: flex;
+      gap: 0.75rem;
+    }
+    
+    .urgency-btn {
+      flex: 1;
+      padding: 0.875rem;
+      border: 2px solid var(--berlin-gray-300);
+      border-radius: var(--radius-md);
+      background: var(--berlin-white);
+      color: var(--berlin-gray-600);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .urgency-btn:hover {
+      border-color: var(--berlin-gray-400);
+      color: var(--berlin-gray-800);
+      background: var(--berlin-gray-50);
+    }
+    
+    .urgency-btn.selected {
+      border-color: var(--berlin-red);
+      background: rgba(226, 0, 26, 0.05);
+      color: var(--berlin-red);
+    }
+    
+    .urgency-btn.high.selected {
+      border-color: #E67700;
+      background: rgba(230, 119, 0, 0.1);
+      color: #E67700;
+    }
+    
+    /* Summary */
+    .summary-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .summary-section h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--berlin-gray-500);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .summary-value {
+      padding: 1rem 1.25rem;
+      background: var(--berlin-gray-50);
+      border-left: 4px solid var(--berlin-red);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      color: var(--berlin-gray-800);
+    }
+    
+    .summary-photos {
+      display: flex;
+      gap: 0.75rem;
+    }
+    
+    .summary-photos img {
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border: 2px solid var(--berlin-gray-200);
+      border-radius: var(--radius-md);
+    }
+    
+    /* Privacy Checkbox */
+    .privacy-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      padding: 1.25rem;
+      background: var(--berlin-gray-50);
+      border: 2px solid var(--berlin-gray-300);
+      border-radius: var(--radius-md);
+    }
+    
+    .privacy-check input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      margin-top: 2px;
+      accent-color: var(--berlin-red);
+      cursor: pointer;
+    }
+    
+    .privacy-check label {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--berlin-gray-700);
+    }
+    
+    .privacy-check a {
+      color: var(--berlin-red);
+      text-decoration: underline;
+    }
+    
+    /* Navigation */
+    .form-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 2px solid var(--berlin-gray-200);
+    }
+    
+    .form-nav .btn {
+      min-width: 130px;
+    }
+    
+    /* Success Screen */
+    .success-screen {
+      text-align: center;
+      padding: 2rem;
+    }
+    
+    .success-icon {
+      font-size: 5rem;
+      color: var(--success);
+      margin-bottom: 1rem;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .ticket-id {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--berlin-red);
+      background: var(--berlin-gray-50);
+      padding: 1rem 2rem;
+      border: 3px solid var(--berlin-red);
+      border-radius: var(--radius-md);
+      display: inline-block;
+      margin: 1rem 0;
+      letter-spacing: 1px;
+    }
+    
+    /* Loading */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 3rem;
+    }
+    
+    .loading.active {
+      display: block;
+    }
+    
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--berlin-gray-200);
+      border-top-color: var(--berlin-red);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 500px) {
+      .category-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .urgency-buttons {
+        flex-direction: column;
+      }
+      
+      .form-nav {
+        flex-direction: column-reverse;
+      }
+      
+      .form-nav .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Berlin Header -->
+  <header class="berlin-header">
+    <div class="berlin-header__inner">
+      <a href="/" class="berlin-logo">
+        <div class="berlin-logo__bear">🐻</div>
+        <div class="berlin-logo__text">
+          Mängelmelder
+          <span>Stadt Berlin</span>
+        </div>
+      </a>
+    </div>
+  </header>
+  
+  <div class="page">
+    
+    <div class="card">
+      <div class="card__header">
+        <h2>Meldung erstellen</h2>
+        <span class="badge">Neu</span>
+      </div>
+      
+      <!-- Fortschrittsanzeige -->
+      <ul class="stepper" id="stepper">
+        <li class="active" data-step="1"><span class="step-label">Kategorie</span></li>
+        <li data-step="2"><span class="step-label">Foto</span></li>
+        <li data-step="3"><span class="step-label">Standort</span></li>
+        <li data-step="4"><span class="step-label">Details</span></li>
+        <li data-step="5"><span class="step-label">Senden</span></li>
+      </ul>
+      
+      <form id="reportForm" enctype="multipart/form-data">
+        <!-- Step 1: Kategorie -->
+        <div class="form-step active" data-step="1">
+          <h3 style="margin-bottom: 1rem;">Was möchten Sie melden?</h3>
+          
+          <div class="category-grid">
+            <div class="category-tile" data-category="TRASH">
+              <span class="icon">🗑️</span>
+              <span class="label">Müll</span>
+            </div>
+            <div class="category-tile" data-category="DAMAGE">
+              <span class="icon">🚧</span>
+              <span class="label">Schäden</span>
+            </div>
+            <div class="category-tile" data-category="VANDALISM">
+              <span class="icon">🎨</span>
+              <span class="label">Vandalismus</span>
+            </div>
+            <div class="category-tile" data-category="OTHER">
+              <span class="icon">❓</span>
+              <span class="label">Sonstiges</span>
+            </div>
+          </div>
+          
+          <input type="hidden" name="category" id="categoryInput" required>
+          
+          <div class="form-nav">
+            <div></div>
+            <button type="button" class="btn" id="nextStep1" disabled>Weiter →</button>
+          </div>
+        </div>
+        
+        <!-- Step 2: Foto -->
+        <div class="form-step" data-step="2">
+          <h3 style="margin-bottom: 1rem;">Foto aufnehmen oder hochladen</h3>
+          
+          <div class="photo-upload" id="photoUpload">
+            <p>📷 Tippen Sie hier, um ein Foto aufzunehmen oder hochzuladen</p>
+            <p style="font-size: 0.85rem; color: var(--berlin-gray-500);">Mindestens 1 Foto erforderlich (max. 3)</p>
+          </div>
+          
+          <input type="file" id="photoInput" name="photo" accept="image/*" capture="environment" style="display: none;" required>
+          <input type="file" id="additionalPhotos" name="photos" accept="image/*" multiple style="display: none;">
+          
+          <div class="photo-preview" id="photoPreview"></div>
+          
+          <button type="button" class="btn btn--ghost" id="addMorePhotos" style="display: none; margin-top: 1rem;">
+            + Weiteres Foto hinzufügen
+          </button>
+          
+          <div class="form-nav">
+            <button type="button" class="btn btn--ghost" data-prev>← Zurück</button>
+            <button type="button" class="btn" id="nextStep2" disabled>Weiter →</button>
+          </div>
+        </div>
+        
+        <!-- Step 3: Standort -->
+        <div class="form-step" data-step="3">
+          <h3 style="margin-bottom: 1rem;">Standort angeben</h3>
+          
+          <!-- Tabs: GPS oder Adresse -->
+          <div class="location-tabs">
+            <button type="button" class="location-tab active" data-method="gps">
+              📍 GPS verwenden
+            </button>
+            <button type="button" class="location-tab" data-method="address">
+              🔍 Adresse eingeben
+            </button>
+          </div>
+          
+          <!-- GPS-Methode -->
+          <div class="location-method active" id="gpsMethod">
+            <div class="gps-status" id="gpsStatus">
+              <span class="icon">⏳</span>
+              <span>Ermittle Ihren Standort...</span>
+            </div>
+          </div>
+          
+          <!-- Adress-Methode -->
+          <div class="location-method" id="addressMethod">
+            <div class="address-search">
+              <input 
+                type="text" 
+                id="addressInput" 
+                placeholder="Straße, Hausnummer, Stadt eingeben..."
+                autocomplete="off"
+              >
+              <button type="button" class="address-search-btn" id="searchAddressBtn">🔍</button>
+              <div class="search-results" id="searchResults"></div>
+            </div>
+          </div>
+          
+          <!-- Karte (für beide Methoden) -->
+          <div id="map"></div>
+          
+          <div class="location-info" id="locationInfo">
+            <p>📍 Wählen Sie einen Standort</p>
+          </div>
+          
+          <p style="font-size: 0.9rem; color: var(--berlin-gray-600); margin-bottom: 1rem;">
+            💡 Tipp: Sie können den Marker auf der Karte verschieben, um den genauen Standort anzupassen.
+          </p>
+          
+          <input type="hidden" name="latitude" id="latitudeInput" required>
+          <input type="hidden" name="longitude" id="longitudeInput" required>
+          
+          <div class="form-nav">
+            <button type="button" class="btn btn--ghost" data-prev>← Zurück</button>
+            <button type="button" class="btn" id="nextStep3" disabled>Weiter →</button>
+          </div>
+        </div>
+        
+        <!-- Step 4: Details -->
+        <div class="form-step" data-step="4">
+          <h3 style="margin-bottom: 1rem;">Beschreiben Sie das Problem</h3>
+          
+          <div class="form">
+            <label for="comment">Beschreibung *</label>
+            <textarea 
+              id="comment" 
+              name="comment" 
+              placeholder="Beschreiben Sie kurz das Problem..." 
+              maxlength="500" 
+              required
+            ></textarea>
+            <div class="char-count"><span id="charCount">0</span> / 500 Zeichen</div>
+          </div>
+          
+          <div class="optional-section">
+            <h3>Optionale Angaben</h3>
+            
+            <div class="form" style="margin-bottom: 1rem;">
+              <label>Dringlichkeit</label>
+              <div class="urgency-buttons">
+                <button type="button" class="urgency-btn" data-urgency="LOW">Niedrig</button>
+                <button type="button" class="urgency-btn selected" data-urgency="MEDIUM">Mittel</button>
+                <button type="button" class="urgency-btn high" data-urgency="HIGH">Hoch</button>
+              </div>
+            </div>
+            
+            <input type="hidden" name="urgency" id="urgencyInput" value="MEDIUM">
+            
+            <div class="form">
+              <label for="contactEmail">E-Mail für Status-Updates</label>
+              <input 
+                type="email" 
+                id="contactEmail" 
+                name="contactEmail" 
+                placeholder="ihre@email.de (optional)"
+              >
+            </div>
+          </div>
+          
+          <div class="form-nav">
+            <button type="button" class="btn btn--ghost" data-prev>← Zurück</button>
+            <button type="button" class="btn" id="nextStep4">Weiter →</button>
+          </div>
+        </div>
+        
+        <!-- Step 5: Zusammenfassung -->
+        <div class="form-step" data-step="5">
+          <h3 style="margin-bottom: 1.5rem;">Zusammenfassung prüfen</h3>
+          
+          <div class="summary-section">
+            <h3>Kategorie</h3>
+            <div class="summary-value" id="summaryCategory">-</div>
+          </div>
+          
+          <div class="summary-section">
+            <h3>Fotos</h3>
+            <div class="summary-photos" id="summaryPhotos"></div>
+          </div>
+          
+          <div class="summary-section">
+            <h3>Standort</h3>
+            <div class="summary-value" id="summaryLocation">-</div>
+          </div>
+          
+          <div class="summary-section">
+            <h3>Beschreibung</h3>
+            <div class="summary-value" id="summaryComment">-</div>
+          </div>
+          
+          <div class="privacy-check">
+            <input type="checkbox" id="privacyAccepted" name="privacyAccepted" required>
+            <label for="privacyAccepted">
+              Ich habe die <a href="#" target="_blank">Datenschutzerklärung</a> gelesen und stimme der Verarbeitung meiner Daten zu. 
+              Ich versichere, dass die Meldung wahrheitsgemäß ist und keine sensiblen personenbezogenen Daten (z.B. Gesichter) enthält.
+            </label>
+          </div>
+          
+          <input type="hidden" name="deviceId" id="deviceIdInput">
+          
+          <div class="form-nav">
+            <button type="button" class="btn btn--ghost" data-prev>← Zurück</button>
+            <button type="submit" class="btn" id="submitBtn">Meldung absenden</button>
+          </div>
+        </div>
+      </form>
+      
+      <!-- Loading -->
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Meldung wird gesendet...</p>
+      </div>
+      
+      <!-- Success -->
+      <div class="form-step" id="successScreen" style="display: none;">
+        <div class="success-screen">
+          <div class="success-icon">✓</div>
+          <h2>Vielen Dank für Ihre Meldung!</h2>
+          <p>Ihre Meldung wurde erfolgreich übermittelt und wird an die zuständige Stelle weitergeleitet.</p>
+          
+          <div class="ticket-id" id="ticketIdDisplay">-</div>
+          
+          <p style="font-size: 0.9rem; color: var(--matrix-green-dark); margin: 1rem 0;">
+            Bewahren Sie diese Ticket-ID auf, um den Status Ihrer Meldung zu verfolgen.
+          </p>
+          
+          <div style="margin-top: 2rem;">
+            <a href="/status.html" class="btn">Status prüfen</a>
+            <a href="/report.html" class="btn btn--ghost" style="margin-left: 1rem;">Neue Meldung</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="js/report.js"></script>
+</body>
+</html>

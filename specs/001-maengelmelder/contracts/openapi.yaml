@@ -1,0 +1,640 @@
+openapi: 3.0.3
+info:
+  title: Mängelmelder API
+  description: |
+    REST API für die Mängelmelder-Anwendung.
+    Ermöglicht Bürger:innen das Melden von Problemen im öffentlichen Raum
+    und Admins die Verwaltung der Meldungen.
+  version: 1.0.0
+  contact:
+    name: Mängelmelder Team
+
+servers:
+  - url: http://localhost:3000/api
+    description: Lokale Entwicklung
+
+tags:
+  - name: Reports
+    description: Öffentliche Meldungs-Endpunkte
+  - name: Admin
+    description: Admin-Endpunkte (Authentifizierung erforderlich)
+  - name: Auth
+    description: Authentifizierung
+
+paths:
+  # ============================================================
+  # PUBLIC ENDPOINTS
+  # ============================================================
+
+  /reports:
+    post:
+      tags: [Reports]
+      summary: Neue Meldung erstellen
+      description: |
+        Erstellt eine neue Meldung mit Foto, Standort und Beschreibung.
+        Rate-Limit: 5 Meldungen pro Gerät pro Stunde.
+      operationId: createReport
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateReportRequest'
+      responses:
+        '201':
+          description: Meldung erfolgreich erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateReportResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /reports/{ticketId}:
+    get:
+      tags: [Reports]
+      summary: Status einer Meldung abrufen
+      description: Öffentlicher Endpunkt zum Abrufen des Status mit der Ticket-ID.
+      operationId: getReportStatus
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          description: Öffentliche Ticket-ID (z.B. MU-20260114-A7K2X)
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}-\d{8}-[A-Z0-9]{5}$'
+            example: MU-20260114-A7K2X
+      responses:
+        '200':
+          description: Status der Meldung
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatusResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # ============================================================
+  # ADMIN ENDPOINTS
+  # ============================================================
+
+  /admin/reports:
+    get:
+      tags: [Admin]
+      summary: Alle Meldungen auflisten
+      description: Liste aller Meldungen mit Filter- und Paginierungsoptionen.
+      operationId: listReports
+      security:
+        - SessionAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/Status'
+        - name: category
+          in: query
+          schema:
+            $ref: '#/components/schemas/Category'
+        - name: district
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          description: Startdatum (ISO 8601)
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: Enddatum (ISO 8601)
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Liste der Meldungen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /admin/reports/{id}:
+    get:
+      tags: [Admin]
+      summary: Meldungsdetails abrufen
+      operationId: getReportDetails
+      security:
+        - SessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      responses:
+        '200':
+          description: Detaillierte Meldungsinformationen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetailResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    patch:
+      tags: [Admin]
+      summary: Status einer Meldung ändern
+      operationId: updateReportStatus
+      security:
+        - SessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStatusRequest'
+      responses:
+        '200':
+          description: Status erfolgreich geändert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetailResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /admin/reports/{id}/reforward:
+    post:
+      tags: [Admin]
+      summary: Meldung erneut weiterleiten
+      operationId: reforwardReport
+      security:
+        - SessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Grund für erneute Weiterleitung
+                  example: Neue E-Mail-Adresse des Empfängers
+      responses:
+        '200':
+          description: Weiterleitung erfolgreich
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  forwardedTo: { type: string }
+                  emailId: { type: string }
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /admin/export:
+    get:
+      tags: [Admin]
+      summary: Meldungen exportieren
+      operationId: exportReports
+      security:
+        - SessionAuth: []
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [csv, json]
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/Status'
+        - name: category
+          in: query
+          schema:
+            $ref: '#/components/schemas/Category'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Export-Datei
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportExport'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ============================================================
+  # AUTH ENDPOINTS
+  # ============================================================
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Admin-Login
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login erfolgreich
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  admin:
+                    type: object
+                    properties:
+                      id: { type: string }
+                      name: { type: string }
+                      email: { type: string }
+                      role: { $ref: '#/components/schemas/Role' }
+        '401':
+          description: Ungültige Anmeldedaten
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Admin-Logout
+      operationId: logout
+      security:
+        - SessionAuth: []
+      responses:
+        '200':
+          description: Logout erfolgreich
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Aktuellen Admin abrufen
+      operationId: getCurrentAdmin
+      security:
+        - SessionAuth: []
+      responses:
+        '200':
+          description: Admin-Informationen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  name: { type: string }
+                  email: { type: string }
+                  role: { $ref: '#/components/schemas/Role' }
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+# ============================================================
+# COMPONENTS
+# ============================================================
+
+components:
+  securitySchemes:
+    SessionAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+      description: Express-Session Cookie
+
+  parameters:
+    ReportId:
+      name: id
+      in: path
+      required: true
+      description: Interne Report-ID (CUID)
+      schema:
+        type: string
+
+  schemas:
+    # Enums
+    Category:
+      type: string
+      enum: [TRASH, DAMAGE, VANDALISM, OTHER]
+      description: |
+        - TRASH: Müll
+        - DAMAGE: Schäden an Infrastruktur
+        - VANDALISM: Vandalismus
+        - OTHER: Sonstiges
+
+    Status:
+      type: string
+      enum: [SUBMITTED, FORWARDED, IN_PROGRESS, DONE]
+      description: |
+        - SUBMITTED: Eingereicht
+        - FORWARDED: Weitergeleitet
+        - IN_PROGRESS: In Bearbeitung
+        - DONE: Erledigt
+
+    Urgency:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+      default: MEDIUM
+
+    Role:
+      type: string
+      enum: [ADMIN, VIEWER]
+
+    # Request Schemas
+    CreateReportRequest:
+      type: object
+      required:
+        - category
+        - latitude
+        - longitude
+        - comment
+        - deviceId
+        - privacyAccepted
+        - photo
+      properties:
+        category:
+          $ref: '#/components/schemas/Category'
+        latitude:
+          type: number
+          format: float
+          minimum: -90
+          maximum: 90
+          example: 52.520008
+        longitude:
+          type: number
+          format: float
+          minimum: -180
+          maximum: 180
+          example: 13.404954
+        comment:
+          type: string
+          minLength: 1
+          maxLength: 500
+          example: Großer Müllhaufen neben dem Papiercontainer
+        urgency:
+          $ref: '#/components/schemas/Urgency'
+        contactEmail:
+          type: string
+          format: email
+          example: buerger@example.com
+        deviceId:
+          type: string
+          description: Anonyme Geräte-ID für Rate-Limiting
+          example: d8a7f6e5-4c3b-2a1d-9e8f-7c6b5a4d3e2f
+        privacyAccepted:
+          type: boolean
+          description: DSGVO-Einwilligung akzeptiert
+        photo:
+          type: string
+          format: binary
+          description: Pflichtfoto (JPEG/PNG, max. 2MB)
+        photos:
+          type: array
+          items:
+            type: string
+            format: binary
+          maxItems: 2
+          description: Zusätzliche Fotos (optional, max. 2)
+
+    UpdateStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+
+    # Response Schemas
+    CreateReportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        ticketId:
+          type: string
+          example: MU-20260114-A7K2X
+        status:
+          $ref: '#/components/schemas/Status'
+        message:
+          type: string
+          example: Ihre Meldung wurde erfolgreich erstellt.
+
+    ReportStatusResponse:
+      type: object
+      properties:
+        ticketId:
+          type: string
+          example: MU-20260114-A7K2X
+        category:
+          $ref: '#/components/schemas/Category'
+        status:
+          $ref: '#/components/schemas/Status'
+        statusLabel:
+          type: string
+          example: Weitergeleitet
+        forwardedTo:
+          type: string
+          example: Müllabfuhr
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ReportListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportSummary'
+        pagination:
+          type: object
+          properties:
+            page: { type: integer }
+            limit: { type: integer }
+            total: { type: integer }
+            totalPages: { type: integer }
+
+    ReportSummary:
+      type: object
+      properties:
+        id: { type: string }
+        ticketId: { type: string }
+        category: { $ref: '#/components/schemas/Category' }
+        status: { $ref: '#/components/schemas/Status' }
+        district: { type: string }
+        urgency: { $ref: '#/components/schemas/Urgency' }
+        createdAt: { type: string, format: date-time }
+
+    ReportDetailResponse:
+      type: object
+      properties:
+        id: { type: string }
+        ticketId: { type: string }
+        category: { $ref: '#/components/schemas/Category' }
+        status: { $ref: '#/components/schemas/Status' }
+        latitude: { type: number }
+        longitude: { type: number }
+        address: { type: string }
+        district: { type: string }
+        comment: { type: string }
+        urgency: { $ref: '#/components/schemas/Urgency' }
+        contactEmail: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        photos:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              filename: { type: string }
+              url: { type: string }
+        auditLogs:
+          type: array
+          items:
+            type: object
+            properties:
+              action: { type: string }
+              details: { type: object }
+              performedBy: { type: string }
+              timestamp: { type: string, format: date-time }
+
+    ReportExport:
+      type: object
+      properties:
+        ticketId: { type: string }
+        category: { type: string }
+        status: { type: string }
+        address: { type: string }
+        district: { type: string }
+        comment: { type: string }
+        urgency: { type: string }
+        createdAt: { type: string }
+        forwardedTo: { type: string }
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+  responses:
+    ValidationError:
+      description: Validierungsfehler
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: validation_error
+            message: Validierung fehlgeschlagen
+            details:
+              - field: comment
+                message: Kommentar darf maximal 500 Zeichen haben
+
+    RateLimitError:
+      description: Rate-Limit überschritten
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: rate_limit_exceeded
+            message: Zu viele Meldungen. Bitte warten Sie eine Stunde.
+
+    NotFoundError:
+      description: Ressource nicht gefunden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: not_found
+            message: Meldung nicht gefunden
+
+    UnauthorizedError:
+      description: Nicht authentifiziert
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bitte melden Sie sich an
+
+    ForbiddenError:
+      description: Keine Berechtigung
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: forbidden
+            message: Sie haben keine Berechtigung für diese Aktion
