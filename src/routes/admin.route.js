@@ -93,6 +93,51 @@ router.patch('/reports/:id',
 );
 
 /**
+ * POST /api/admin/reports/:id/forward
+ * Meldung an zuständige Stelle weiterleiten (manuelle Auswahl)
+ */
+router.post('/reports/:id/forward',
+  requireAdminRole,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { authorityKey, authorityName, authorityEmail, comment } = req.body;
+      
+      if (!authorityName) {
+        return res.status(400).json({
+          error: 'invalid_request',
+          message: 'Zuständige Stelle muss angegeben werden'
+        });
+      }
+      
+      log('admin', `Forwarding ${id} to ${authorityName} by ${req.admin.email}`);
+      
+      const result = await reportService.forwardToAuthority(id, {
+        authorityKey,
+        authorityName,
+        authorityEmail,
+        comment,
+        performedBy: req.admin.id
+      });
+      
+      res.json({
+        success: true,
+        forwardedTo: authorityName,
+        emailId: result.emailResult?.messageId
+      });
+    } catch (error) {
+      if (error.message === 'Report not found') {
+        return res.status(404).json({
+          error: 'not_found',
+          message: 'Meldung nicht gefunden'
+        });
+      }
+      next(error);
+    }
+  }
+);
+
+/**
  * POST /api/admin/reports/:id/reforward
  * Meldung erneut weiterleiten
  */
@@ -101,15 +146,20 @@ router.post('/reports/:id/reforward',
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { reason } = req.body;
+      const { reason, authorityName, authorityEmail } = req.body;
       
-      log('admin', `Re-forwarding ${id} by ${req.admin.email}`);
+      log('admin', `Re-forwarding ${id} to ${authorityName || 'auto'} by ${req.admin.email}`);
       
-      const result = await reportService.reforwardReport(id, reason || 'Erneute Weiterleitung durch Admin', req.admin.id);
+      const result = await reportService.reforwardReport(id, {
+        reason: reason || 'Erneute Weiterleitung durch Sachbearbeiter',
+        authorityName,
+        authorityEmail,
+        performedBy: req.admin.id
+      });
       
       res.json({
         success: true,
-        forwardedTo: result.rule.recipientName,
+        forwardedTo: result.forwardedTo,
         emailId: result.emailResult?.messageId
       });
     } catch (error) {

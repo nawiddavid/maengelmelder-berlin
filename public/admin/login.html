@@ -3,20 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Login | Mängelmelder Berlin</title>
+  <title>Sachbearbeiter Login | Mängelmelder Berlin</title>
   <link rel="stylesheet" href="../styles.css">
   <style>
+    body {
+      background: linear-gradient(135deg, var(--berlin-gray-100) 0%, var(--berlin-gray-200) 100%);
+    }
+    
     .login-page {
       min-height: calc(100vh - 150px);
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 2rem 1rem;
     }
     
     .login-container {
       width: 100%;
       max-width: 420px;
-      padding: 1rem;
+    }
+    
+    .login-card {
+      background: var(--berlin-white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    
+    .login-header {
+      background: linear-gradient(135deg, var(--berlin-red) 0%, var(--berlin-red-dark) 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .login-header .icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .login-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    
+    .login-header p {
+      margin: 0.5rem 0 0;
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+    
+    .login-body {
+      padding: 2rem;
     }
     
     .login-form {
@@ -25,15 +63,9 @@
       gap: 1.25rem;
     }
     
-    .login-icon {
-      text-align: center;
-      font-size: 3rem;
-      margin-bottom: 1rem;
-    }
-    
     .error-message {
       background: #FFE3E3;
-      border: 2px solid var(--danger);
+      border-left: 4px solid var(--danger);
       border-radius: var(--radius-md);
       padding: 1rem;
       color: #C92A2A;
@@ -47,11 +79,28 @@
     
     .setup-info {
       background: #E7F5FF;
-      border: 2px solid #228BE6;
+      border-left: 4px solid #228BE6;
       border-radius: var(--radius-md);
       padding: 1rem;
       color: #1864AB;
       margin-bottom: 1rem;
+    }
+    
+    .back-link {
+      text-align: center;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--berlin-gray-200);
+    }
+    
+    .back-link a {
+      color: var(--berlin-gray-500);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    
+    .back-link a:hover {
+      color: var(--berlin-red);
     }
   </style>
 </head>
@@ -60,9 +109,7 @@
   <header class="berlin-header">
     <div class="berlin-header__inner">
       <a href="/" class="berlin-logo">
-        <div class="berlin-logo__bear">
-          <img src="https://images.unsplash.com/photo-1560969184-10fe8719e047?w=100&h=100&fit=crop&crop=center" alt="Berlin" class="berlin-logo__bear-img">
-        </div>
+        <div class="berlin-logo__bear">🐻</div>
         <div class="berlin-logo__text">
           Mängelmelder
           <span>Stadt Berlin</span>
@@ -73,60 +120,64 @@
   
   <div class="login-page">
     <div class="login-container">
-      <div class="card">
-        <div class="login-icon">
-          <img src="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=100&h=100&fit=crop&crop=center" alt="Admin" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--berlin-red);">
+      <div class="login-card">
+        <div class="login-header">
+          <div class="icon">🏛️</div>
+          <h2>Sachbearbeiter-Portal</h2>
+          <p>Stadt Berlin – Mängelmelder</p>
         </div>
-        <div class="card__header" style="justify-content: center;">
-          <h2>Admin-Bereich</h2>
+        
+        <div class="login-body">
+          <div class="error-message" id="errorMessage"></div>
+          
+          <form class="login-form" id="loginForm">
+            <div class="form">
+              <label for="email">Dienst-E-Mail</label>
+              <input type="email" id="email" name="email" placeholder="sachbearbeiter@berlin.de" required autofocus>
+            </div>
+            
+            <div class="form">
+              <label for="password">Passwort</label>
+              <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn" style="margin-top: 0.5rem; width: 100%;">Anmelden</button>
+          </form>
+          
+          <div class="back-link">
+            <a href="/">← Zurück zur Startseite</a>
+          </div>
         </div>
-        
-        <div class="error-message" id="errorMessage"></div>
-        
-        <form class="login-form" id="loginForm">
-          <div class="form">
-            <label for="email">E-Mail-Adresse</label>
-            <input type="email" id="email" name="email" placeholder="admin@berlin.de" required autofocus>
-          </div>
-          
-          <div class="form">
-            <label for="password">Passwort</label>
-            <input type="password" id="password" name="password" placeholder="••••••••" required>
-          </div>
-          
-          <button type="submit" class="btn" style="margin-top: 0.5rem;">Anmelden</button>
-        </form>
-        
-        <p style="text-align: center; margin-top: 2rem;">
-          <a href="/" style="color: var(--berlin-gray-500);">← Zurück zur Startseite</a>
-        </p>
       </div>
       
       <!-- Setup-Formular (nur sichtbar wenn noch kein Admin existiert) -->
-      <div class="card" id="setupCard" style="display: none; margin-top: 1rem;">
-        <div class="card__header">
+      <div class="login-card" id="setupCard" style="display: none; margin-top: 1.5rem;">
+        <div class="login-header" style="background: linear-gradient(135deg, #228BE6 0%, #1864AB 100%);">
+          <div class="icon">🚀</div>
           <h2>Ersteinrichtung</h2>
         </div>
         
-        <div class="setup-info">
-          Es existiert noch kein Administrator. Erstellen Sie den ersten Admin-Account.
+        <div class="login-body">
+          <div class="setup-info">
+            Es existiert noch kein Sachbearbeiter-Account. Erstellen Sie den ersten Zugang.
+          </div>
+          
+          <form class="login-form" id="setupForm">
+            <div class="form">
+              <label for="setupName">Vollständiger Name</label>
+              <input type="text" id="setupName" placeholder="Max Mustermann" required>
+            </div>
+            <div class="form">
+              <label for="setupEmail">Dienst-E-Mail</label>
+              <input type="email" id="setupEmail" placeholder="sachbearbeiter@berlin.de" required>
+            </div>
+            <div class="form">
+              <label for="setupPassword">Passwort (min. 8 Zeichen)</label>
+              <input type="password" id="setupPassword" placeholder="••••••••" minlength="8" required>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Zugang erstellen</button>
+          </form>
         </div>
-        
-        <form class="login-form" id="setupForm">
-          <div class="form">
-            <label for="setupName">Vollständiger Name</label>
-            <input type="text" id="setupName" placeholder="Max Mustermann" required>
-          </div>
-          <div class="form">
-            <label for="setupEmail">E-Mail-Adresse</label>
-            <input type="email" id="setupEmail" placeholder="admin@berlin.de" required>
-          </div>
-          <div class="form">
-            <label for="setupPassword">Passwort (min. 8 Zeichen)</label>
-            <input type="password" id="setupPassword" placeholder="••••••••" minlength="8" required>
-          </div>
-          <button type="submit" class="btn">Admin-Account erstellen</button>
-        </form>
       </div>
     </div>
   </div>
@@ -191,7 +242,7 @@
         window.location.href = '/admin/';
         
       } catch (error) {
-        errorMessage.textContent = error.message;
+        errorMessage.textContent = '⚠️ ' + error.message;
         errorMessage.classList.add('active');
       }
     });
@@ -216,13 +267,13 @@
           throw new Error(data.message || 'Setup fehlgeschlagen');
         }
         
-        alert('Admin-Account erstellt! Sie können sich jetzt anmelden.');
+        alert('✅ Sachbearbeiter-Zugang erstellt! Sie können sich jetzt anmelden.');
         setupCard.style.display = 'none';
         document.getElementById('email').value = email;
         document.getElementById('password').focus();
         
       } catch (error) {
-        alert('Fehler: ' + error.message);
+        alert('❌ Fehler: ' + error.message);
       }
     });
   </script>

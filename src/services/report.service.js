@@ -104,37 +104,101 @@ export async function forwardReport(reportId) {
 }
 
 /**
- * Leitet eine Meldung erneut weiter
+ * Leitet eine Meldung manuell an eine zuständige Stelle weiter
  */
-export async function reforwardReport(reportId, reason, adminId) {
+export async function forwardToAuthority(reportId, options) {
+  const { authorityKey, authorityName, authorityEmail, comment, performedBy } = options;
+  
   const report = await reportRepo.findById(reportId);
   
   if (!report) {
     throw new Error('Report not found');
   }
   
-  const rule = await routingService.findRoutingRule(
-    report.category,
-    report.district
-  );
+  log('service', `Manually forwarding ${report.ticketId} to ${authorityName}`);
   
-  if (!rule) {
-    throw new Error('No routing rule found');
+  // E-Mail senden (falls E-Mail-Adresse vorhanden)
+  let emailResult = null;
+  if (authorityEmail) {
+    const fakeRule = {
+      recipientEmail: authorityEmail,
+      recipientName: authorityName
+    };
+    emailResult = await emailService.sendReportEmail(report, fakeRule);
   }
   
-  log('service', `Re-forwarding ${report.ticketId} to ${rule.recipientName}`);
+  // Status auf FORWARDED setzen
+  await reportRepo.updateStatus(report.id, 'FORWARDED');
   
-  const emailResult = await emailService.sendReportEmail(report, rule);
+  // Audit-Log: Weitergeleitet
+  await auditRepo.createLog(report.id, 'FORWARDED', {
+    authorityKey,
+    recipientEmail: authorityEmail || '',
+    recipientName: authorityName,
+    comment: comment || '',
+    emailId: emailResult?.messageId || 'manual'
+  }, performedBy);
+  
+  return { 
+    forwardedTo: authorityName,
+    emailResult 
+  };
+}
+
+/**
+ * Leitet eine Meldung erneut weiter
+ */
+export async function reforwardReport(reportId, options) {
+  const { reason, authorityName, authorityEmail, performedBy } = options;
+  
+  const report = await reportRepo.findById(reportId);
+  
+  if (!report) {
+    throw new Error('Report not found');
+  }
+  
+  let recipientName = authorityName;
+  let recipientEmail = authorityEmail;
+  
+  // Falls keine Stelle angegeben, automatisch ermitteln
+  if (!recipientName) {
+    const rule = await routingService.findRoutingRule(
+      report.category,
+      report.district
+    );
+    
+    if (!rule) {
+      throw new Error('No routing rule found');
+    }
+    
+    recipientName = rule.recipientName;
+    recipientEmail = rule.recipientEmail;
+  }
+  
+  log('service', `Re-forwarding ${report.ticketId} to ${recipientName}`);
+  
+  // E-Mail senden
+  let emailResult = null;
+  if (recipientEmail) {
+    const fakeRule = {
+      recipientEmail,
+      recipientName
+    };
+    emailResult = await emailService.sendReportEmail(report, fakeRule);
+  }
   
   // Audit-Log: Erneut weitergeleitet
   await auditRepo.createLog(report.id, 'REFORWARDED', {
     reason,
-    recipientEmail: rule.recipientEmail,
-    recipientName: rule.recipientName,
-    emailId: emailResult?.messageId || 'demo'
-  }, adminId);
+    recipientEmail: recipientEmail || '',
+    recipientName,
+    emailId: emailResult?.messageId || 'manual'
+  }, performedBy);
   
-  return { rule, emailResult };
+  return { 
+    forwardedTo: recipientName,
+    emailResult 
+  };
 }
 
 /**
