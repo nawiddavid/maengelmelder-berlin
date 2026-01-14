@@ -60,7 +60,9 @@
   <header class="berlin-header">
     <div class="berlin-header__inner">
       <a href="/" class="berlin-logo">
-        <div class="berlin-logo__bear">🐻</div>
+        <div class="berlin-logo__bear">
+          <img src="https://images.unsplash.com/photo-1560969184-10fe8719e047?w=100&h=100&fit=crop&crop=center" alt="Berlin" class="berlin-logo__bear-img">
+        </div>
         <div class="berlin-logo__text">
           Mängelmelder
           <span>Stadt Berlin</span>
@@ -72,7 +74,9 @@
   <div class="login-page">
     <div class="login-container">
       <div class="card">
-        <div class="login-icon">🔐</div>
+        <div class="login-icon">
+          <img src="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=100&h=100&fit=crop&crop=center" alt="Admin" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--berlin-red);">
+        </div>
         <div class="card__header" style="justify-content: center;">
           <h2>Admin-Bereich</h2>
         </div>
@@ -101,7 +105,7 @@
       <!-- Setup-Formular (nur sichtbar wenn noch kein Admin existiert) -->
       <div class="card" id="setupCard" style="display: none; margin-top: 1rem;">
         <div class="card__header">
-          <h2>🚀 Ersteinrichtung</h2>
+          <h2>Ersteinrichtung</h2>
         </div>
         
         <div class="setup-info">
@@ -187,7 +191,7 @@
         window.location.href = '/admin/';
         
       } catch (error) {
-        errorMessage.textContent = '⚠️ ' + error.message;
+        errorMessage.textContent = error.message;
         errorMessage.classList.add('active');
       }
     });
@@ -212,13 +216,13 @@
           throw new Error(data.message || 'Setup fehlgeschlagen');
         }
         
-        alert('✅ Admin-Account erstellt! Sie können sich jetzt anmelden.');
+        alert('Admin-Account erstellt! Sie können sich jetzt anmelden.');
         setupCard.style.display = 'none';
         document.getElementById('email').value = email;
         document.getElementById('password').focus();
         
       } catch (error) {
-        alert('❌ Fehler: ' + error.message);
+        alert('Fehler: ' + error.message);
       }
     });
   </script>

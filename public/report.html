@@ -637,7 +637,9 @@
   <header class="berlin-header">
     <div class="berlin-header__inner">
       <a href="/" class="berlin-logo">
-        <div class="berlin-logo__bear">🐻</div>
+        <div class="berlin-logo__bear">
+          <img src="https://images.unsplash.com/photo-1560969184-10fe8719e047?w=100&h=100&fit=crop&crop=center" alt="Berlin" class="berlin-logo__bear-img">
+        </div>
         <div class="berlin-logo__text">
           Mängelmelder
           <span>Stadt Berlin</span>
@@ -670,19 +672,19 @@
           
           <div class="category-grid">
             <div class="category-tile" data-category="TRASH">
-              <span class="icon">🗑️</span>
+              <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=128&h=128&fit=crop&crop=center" alt="Müll" class="img-icon">
               <span class="label">Müll</span>
             </div>
             <div class="category-tile" data-category="DAMAGE">
-              <span class="icon">🚧</span>
+              <img src="https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=128&h=128&fit=crop&crop=center" alt="Schäden" class="img-icon">
               <span class="label">Schäden</span>
             </div>
             <div class="category-tile" data-category="VANDALISM">
-              <span class="icon">🎨</span>
+              <img src="https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=128&h=128&fit=crop&crop=center" alt="Vandalismus" class="img-icon">
               <span class="label">Vandalismus</span>
             </div>
             <div class="category-tile" data-category="OTHER">
-              <span class="icon">❓</span>
+              <img src="https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?w=128&h=128&fit=crop&crop=center" alt="Sonstiges" class="img-icon">
               <span class="label">Sonstiges</span>
             </div>
           </div>
@@ -700,7 +702,7 @@
           <h3 style="margin-bottom: 1rem;">Foto aufnehmen oder hochladen</h3>
           
           <div class="photo-upload" id="photoUpload">
-            <p>📷 Tippen Sie hier, um ein Foto aufzunehmen oder hochzuladen</p>
+            <p>Tippen Sie hier, um ein Foto aufzunehmen oder hochzuladen</p>
             <p style="font-size: 0.85rem; color: var(--berlin-gray-500);">Mindestens 1 Foto erforderlich (max. 3)</p>
           </div>
           
@@ -726,17 +728,16 @@
           <!-- Tabs: GPS oder Adresse -->
           <div class="location-tabs">
             <button type="button" class="location-tab active" data-method="gps">
-              📍 GPS verwenden
+              GPS verwenden
             </button>
             <button type="button" class="location-tab" data-method="address">
-              🔍 Adresse eingeben
+              Adresse eingeben
             </button>
           </div>
           
           <!-- GPS-Methode -->
           <div class="location-method active" id="gpsMethod">
             <div class="gps-status" id="gpsStatus">
-              <span class="icon">⏳</span>
               <span>Ermittle Ihren Standort...</span>
             </div>
           </div>
@@ -750,7 +751,7 @@
                 placeholder="Straße, Hausnummer, Stadt eingeben..."
                 autocomplete="off"
               >
-              <button type="button" class="address-search-btn" id="searchAddressBtn">🔍</button>
+              <button type="button" class="address-search-btn" id="searchAddressBtn">Suchen</button>
               <div class="search-results" id="searchResults"></div>
             </div>
           </div>
@@ -759,11 +760,11 @@
           <div id="map"></div>
           
           <div class="location-info" id="locationInfo">
-            <p>📍 Wählen Sie einen Standort</p>
+            <p>Wählen Sie einen Standort auf der Karte</p>
           </div>
           
           <p style="font-size: 0.9rem; color: var(--berlin-gray-600); margin-bottom: 1rem;">
-            💡 Tipp: Sie können den Marker auf der Karte verschieben, um den genauen Standort anzupassen.
+            Tipp: Sie können den Marker auf der Karte verschieben, um den genauen Standort anzupassen.
           </p>
           
           <input type="hidden" name="latitude" id="latitudeInput" required>

@@ -547,6 +547,75 @@ dialog::backdrop {
 }
 
 /* ============================================
+   IMAGE ICONS (Unsplash)
+   ============================================ */
+
+.img-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.img-icon--sm {
+  width: 32px;
+  height: 32px;
+}
+
+.img-icon--lg {
+  width: 64px;
+  height: 64px;
+}
+
+.img-icon--xl {
+  width: 80px;
+  height: 80px;
+}
+
+.feature-card .img-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-md);
+  border: 3px solid var(--berlin-white);
+}
+
+.info-section .img-icon {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-md);
+  border: 3px solid var(--berlin-white);
+}
+
+.berlin-logo__bear-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--berlin-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.category-tile .img-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--berlin-gray-200);
+  transition: all 0.2s ease;
+}
+
+.category-tile:hover .img-icon,
+.category-tile.selected .img-icon {
+  border-color: var(--berlin-red);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================
    FOOTER
    ============================================ */
 

@@ -246,7 +246,9 @@
   <header class="berlin-header">
     <div class="berlin-header__inner">
       <a href="/" class="berlin-logo">
-        <div class="berlin-logo__bear">🐻</div>
+        <div class="berlin-logo__bear">
+          <img src="https://images.unsplash.com/photo-1560969184-10fe8719e047?w=100&h=100&fit=crop&crop=center" alt="Berlin" class="berlin-logo__bear-img">
+        </div>
         <div class="berlin-logo__text">
           Mängelmelder
           <span>Stadt Berlin</span>
@@ -258,7 +260,7 @@
   <div class="page">
     <div class="card">
       <div class="card__header">
-        <h2>🔍 Status prüfen</h2>
+        <h2>Status prüfen</h2>
       </div>
       
       <div class="status-form">
@@ -311,7 +313,7 @@
       </div>
       
       <div class="saved-tickets" id="savedTickets">
-        <h3>📋 Ihre letzten Meldungen</h3>
+        <h3>Ihre letzten Meldungen</h3>
         <div id="savedTicketsList"></div>
       </div>
     </div>
@@ -336,10 +338,10 @@
     };
     
     const CATEGORY_LABELS = {
-      'TRASH': '🗑️ Müll',
-      'DAMAGE': '🚧 Schäden',
-      'VANDALISM': '🎨 Vandalismus',
-      'OTHER': '❓ Sonstiges'
+      'TRASH': 'Müll',
+      'DAMAGE': 'Schäden',
+      'VANDALISM': 'Vandalismus',
+      'OTHER': 'Sonstiges'
     };
     
     const ticketInput = document.getElementById('ticketIdInput');
@@ -393,7 +395,7 @@
         history.replaceState(null, '', `?ticket=${ticketId}`);
         
       } catch (error) {
-        errorMessage.textContent = '⚠️ ' + error.message;
+        errorMessage.textContent = error.message;
         errorMessage.classList.add('active');
       }
     }
