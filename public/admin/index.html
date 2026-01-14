@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard | Mängelmelder Berlin</title>
+  <title>Admin Dashboard | Mängelmelder</title>
   <link rel="stylesheet" href="../styles.css">
   <style>
-    .admin-header-bar {
-      background: var(--berlin-white);
-      border-bottom: 1px solid var(--berlin-gray-200);
-      padding: 1rem 1.5rem;
+    .admin-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 2rem;
       flex-wrap: wrap;
       gap: 1rem;
     }
@@ -23,59 +21,45 @@
       gap: 1rem;
     }
     
-    .admin-user-name {
-      font-weight: 600;
-      color: var(--berlin-gray-700);
-    }
-    
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 1rem;
       margin-bottom: 2rem;
     }
     
     .stat-card {
-      background: var(--berlin-white);
-      border: 2px solid var(--berlin-gray-200);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
+      background: rgba(0, 20, 0, 0.6);
+      border: 1px solid var(--matrix-green-dark);
+      padding: 1.25rem;
       text-align: center;
-      transition: all 0.2s ease;
-    }
-    
-    .stat-card:hover {
-      border-color: var(--berlin-red);
-      box-shadow: var(--shadow-md);
     }
     
     .stat-value {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--berlin-red);
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--matrix-green);
     }
     
     .stat-label {
-      font-size: 0.9rem;
-      color: var(--berlin-gray-500);
+      font-size: 0.85rem;
+      color: var(--matrix-green-dark);
       margin-top: 0.25rem;
-      font-weight: 600;
     }
     
     .filters {
       display: flex;
-      gap: 0.75rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
       margin-bottom: 1.5rem;
     }
     
     .filters select,
     .filters input {
-      padding: 0.625rem 1rem;
-      border: 2px solid var(--berlin-gray-300);
-      border-radius: var(--radius-md);
-      background: var(--berlin-white);
-      color: var(--berlin-gray-800);
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--matrix-green-dark);
+      background: rgba(0, 10, 0, 0.8);
+      color: var(--matrix-green);
       font-family: inherit;
       font-size: 0.9rem;
     }
@@ -83,7 +67,7 @@
     .filters select:focus,
     .filters input:focus {
       outline: none;
-      border-color: var(--berlin-red);
+      border-color: var(--matrix-green);
     }
     
     .reports-table {
@@ -93,26 +77,20 @@
     
     .reports-table th,
     .reports-table td {
-      padding: 1rem;
+      padding: 0.75rem;
       text-align: left;
-      border-bottom: 1px solid var(--berlin-gray-200);
+      border-bottom: 1px solid rgba(0, 255, 65, 0.2);
     }
     
     .reports-table th {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--berlin-gray-500);
+      font-size: 0.85rem;
+      color: var(--matrix-green-dark);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      background: var(--berlin-gray-50);
+      letter-spacing: 1px;
     }
     
-    .reports-table tbody tr {
-      transition: background 0.2s ease;
-    }
-    
-    .reports-table tbody tr:hover {
-      background: var(--berlin-gray-50);
+    .reports-table tr:hover td {
+      background: rgba(0, 255, 65, 0.05);
     }
     
     .reports-table .clickable {
@@ -121,22 +99,18 @@
     
     .status-badge {
       display: inline-block;
-      padding: 0.35rem 0.75rem;
-      border-radius: 100px;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid;
       font-size: 0.75rem;
-      font-weight: 600;
       text-transform: uppercase;
     }
     
-    .status-badge.SUBMITTED { background: #FFF3CD; color: #856404; }
-    .status-badge.FORWARDED { background: #E7F5FF; color: #1864AB; }
-    .status-badge.IN_PROGRESS { background: #F3D9FA; color: #862E9C; }
-    .status-badge.DONE { background: #D3F9D8; color: #2B8A3E; }
+    .status-badge.SUBMITTED { border-color: #ffaa00; color: #ffaa00; }
+    .status-badge.FORWARDED { border-color: #00aaff; color: #00aaff; }
+    .status-badge.IN_PROGRESS { border-color: #aa00ff; color: #aa00ff; }
+    .status-badge.DONE { border-color: var(--matrix-green); color: var(--matrix-green); }
     
-    .urgency-HIGH { 
-      color: #E67700;
-      font-weight: 600;
-    }
+    .urgency-HIGH { color: #ffaa00; }
     
     .pagination {
       display: flex;
@@ -147,19 +121,10 @@
     
     .pagination button {
       padding: 0.5rem 1rem;
-      border: 2px solid var(--berlin-gray-300);
-      border-radius: var(--radius-md);
-      background: var(--berlin-white);
-      color: var(--berlin-gray-700);
-      font-family: inherit;
-      font-weight: 600;
+      border: 1px solid var(--matrix-green-dark);
+      background: transparent;
+      color: var(--matrix-green);
       cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .pagination button:hover:not(:disabled) {
-      border-color: var(--berlin-red);
-      color: var(--berlin-red);
     }
     
     .pagination button:disabled {
@@ -168,9 +133,8 @@
     }
     
     .pagination button.active {
-      background: var(--berlin-red);
-      border-color: var(--berlin-red);
-      color: var(--berlin-white);
+      background: var(--matrix-green);
+      color: var(--matrix-bg);
     }
     
     /* Detail Modal */
@@ -181,8 +145,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.9);
       z-index: 1000;
       overflow-y: auto;
     }
@@ -195,30 +158,20 @@
     }
     
     .modal-content {
-      background: var(--berlin-white);
-      border-radius: var(--radius-lg);
-      max-width: 750px;
+      background: var(--matrix-bg);
+      border: 1px solid var(--matrix-green);
+      max-width: 700px;
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
-      box-shadow: var(--shadow-lg);
     }
     
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1.25rem 1.5rem;
-      border-bottom: 2px solid var(--berlin-gray-200);
-      position: sticky;
-      top: 0;
-      background: var(--berlin-white);
-    }
-    
-    .modal-header h3 {
-      margin: 0;
-      color: var(--berlin-red);
-      font-size: 1.25rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--matrix-green-dark);
     }
     
     .modal-body {
@@ -228,112 +181,62 @@
     .modal-close {
       background: none;
       border: none;
-      color: var(--berlin-gray-500);
-      font-size: 1.75rem;
+      color: var(--matrix-green);
+      font-size: 1.5rem;
       cursor: pointer;
-      transition: color 0.2s ease;
-    }
-    
-    .modal-close:hover {
-      color: var(--berlin-red);
     }
     
     .detail-row {
       display: flex;
-      padding: 0.875rem 0;
-      border-bottom: 1px solid var(--berlin-gray-200);
-    }
-    
-    .detail-row:last-child {
-      border-bottom: none;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(0, 255, 65, 0.1);
     }
     
     .detail-row .label {
-      width: 160px;
-      color: var(--berlin-gray-500);
-      font-weight: 600;
+      width: 140px;
+      color: var(--matrix-green-dark);
       flex-shrink: 0;
-    }
-    
-    .detail-row .value {
-      color: var(--berlin-gray-800);
-    }
-    
-    .detail-row .value a {
-      color: var(--berlin-red);
     }
     
     .detail-photos {
       display: flex;
-      gap: 0.75rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
       margin: 1rem 0;
     }
     
     .detail-photos img {
-      width: 160px;
-      height: 160px;
+      width: 150px;
+      height: 150px;
       object-fit: cover;
-      border: 2px solid var(--berlin-gray-200);
-      border-radius: var(--radius-md);
+      border: 1px solid var(--matrix-green-dark);
       cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .detail-photos img:hover {
-      border-color: var(--berlin-red);
-      transform: scale(1.02);
     }
     
     .detail-actions {
       display: flex;
-      gap: 0.75rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
       margin-top: 1.5rem;
       padding-top: 1.5rem;
-      border-top: 2px solid var(--berlin-gray-200);
-    }
-    
-    .detail-actions select {
-      padding: 0.625rem 1rem;
-      border: 2px solid var(--berlin-gray-300);
-      border-radius: var(--radius-md);
-      background: var(--berlin-white);
-      font-family: inherit;
+      border-top: 1px solid var(--matrix-green-dark);
     }
     
     .audit-log {
       margin-top: 1.5rem;
       padding-top: 1.5rem;
-      border-top: 2px solid var(--berlin-gray-200);
+      border-top: 1px solid var(--matrix-green-dark);
     }
     
     .audit-log h4 {
-      margin: 0 0 1rem;
-      color: var(--berlin-gray-600);
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      margin-bottom: 1rem;
+      color: var(--matrix-green-dark);
     }
     
     .audit-item {
-      padding: 0.75rem 0;
+      padding: 0.5rem 0;
       font-size: 0.9rem;
-      border-bottom: 1px solid var(--berlin-gray-100);
-    }
-    
-    .audit-item:last-child {
-      border-bottom: none;
-    }
-    
-    .description-box {
-      background: var(--berlin-gray-50);
-      padding: 1rem 1.25rem;
-      border-radius: var(--radius-md);
-      border-left: 4px solid var(--berlin-red);
-      margin-top: 0.5rem;
-      color: var(--berlin-gray-800);
-      line-height: 1.6;
+      border-bottom: 1px solid rgba(0, 255, 65, 0.1);
     }
     
     @media (max-width: 768px) {
@@ -347,42 +250,21 @@
       .reports-table td:nth-child(5) {
         display: none;
       }
-      
-      .detail-row {
-        flex-direction: column;
-        gap: 0.25rem;
-      }
-      
-      .detail-row .label {
-        width: auto;
-      }
     }
   </style>
 </head>
 <body>
-  <!-- Berlin Header -->
-  <header class="berlin-header">
-    <div class="berlin-header__inner">
-      <a href="/" class="berlin-logo">
-        <div class="berlin-logo__bear">🐻</div>
-        <div class="berlin-logo__text">
-          Mängelmelder
-          <span>Stadt Berlin</span>
-        </div>
-      </a>
-    </div>
-  </header>
-  
-  <!-- Admin Header Bar -->
-  <div class="admin-header-bar">
-    <h1 style="margin: 0; font-size: 1.25rem; color: var(--berlin-gray-800);">📊 Admin Dashboard</h1>
-    <div class="admin-user">
-      <span class="admin-user-name" id="adminName">-</span>
-      <button class="btn btn--sm btn--ghost" id="logoutBtn">Abmelden</button>
-    </div>
-  </div>
+  <div class="matrix-rain"></div>
   
   <div class="page">
+    <div class="admin-header">
+      <h1 style="margin: 0;">Mängelmelder Admin</h1>
+      <div class="admin-user">
+        <span id="adminName">-</span>
+        <button class="btn btn--ghost" id="logoutBtn">Abmelden</button>
+      </div>
+    </div>
+    
     <!-- Stats -->
     <div class="stats-grid" id="statsGrid">
       <div class="stat-card">
@@ -409,10 +291,10 @@
     
     <div class="card">
       <div class="card__header">
-        <h2>📋 Meldungen</h2>
+        <h2>Meldungen</h2>
         <div style="display: flex; gap: 0.5rem;">
-          <button class="btn btn--sm btn--ghost" id="exportCsvBtn">CSV Export</button>
-          <button class="btn btn--sm btn--ghost" id="exportJsonBtn">JSON Export</button>
+          <button class="btn btn--ghost" id="exportCsvBtn">CSV Export</button>
+          <button class="btn btn--ghost" id="exportJsonBtn">JSON Export</button>
         </div>
       </div>
       
@@ -432,9 +314,9 @@
           <option value="VANDALISM">Vandalismus</option>
           <option value="OTHER">Sonstiges</option>
         </select>
-        <input type="date" id="filterFrom" title="Von Datum">
-        <input type="date" id="filterTo" title="Bis Datum">
-        <button class="btn btn--sm" id="applyFilters">Filtern</button>
+        <input type="date" id="filterFrom" placeholder="Von">
+        <input type="date" id="filterTo" placeholder="Bis">
+        <button class="btn" id="applyFilters">Filtern</button>
       </div>
       
       <!-- Table -->
@@ -451,7 +333,7 @@
             </tr>
           </thead>
           <tbody id="reportsTableBody">
-            <tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--berlin-gray-500);">Laden...</td></tr>
+            <tr><td colspan="6" style="text-align: center;">Laden...</td></tr>
           </tbody>
         </table>
       </div>
@@ -567,13 +449,13 @@
       const tbody = document.getElementById('reportsTableBody');
       
       if (reports.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--berlin-gray-500);">Keine Meldungen gefunden</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Keine Meldungen gefunden</td></tr>';
         return;
       }
       
       tbody.innerHTML = reports.map(report => `
         <tr class="clickable" data-id="${report.id}">
-          <td><strong>${report.ticketId}</strong></td>
+          <td>${report.ticketId}</td>
           <td>${CATEGORY_LABELS[report.category] || report.category}</td>
           <td><span class="status-badge ${report.status}">${STATUS_LABELS[report.status]}</span></td>
           <td>${report.district || '-'}</td>
@@ -605,7 +487,7 @@
         if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
           html += `<button class="${i === page ? 'active' : ''}" data-page="${i}">${i}</button>`;
         } else if (i === page - 3 || i === page + 3) {
-          html += `<span style="padding: 0 0.5rem; color: var(--berlin-gray-400);">...</span>`;
+          html += `<span style="padding: 0 0.5rem;">...</span>`;
         }
       }
       
@@ -654,77 +536,74 @@
         const response = await fetch(`/api/admin/reports/${id}`);
         const report = await response.json();
         
-        document.getElementById('modalTicketId').textContent = '🎫 ' + report.ticketId;
+        document.getElementById('modalTicketId').textContent = report.ticketId;
         
         const body = document.getElementById('modalBody');
         body.innerHTML = `
           <div class="detail-row">
             <span class="label">Status</span>
-            <span class="value"><span class="status-badge ${report.status}">${STATUS_LABELS[report.status]}</span></span>
+            <span><span class="status-badge ${report.status}">${STATUS_LABELS[report.status]}</span></span>
           </div>
           <div class="detail-row">
             <span class="label">Kategorie</span>
-            <span class="value">${CATEGORY_LABELS[report.category]}</span>
+            <span>${CATEGORY_LABELS[report.category]}</span>
           </div>
           <div class="detail-row">
             <span class="label">Dringlichkeit</span>
-            <span class="value ${report.urgency === 'HIGH' ? 'urgency-HIGH' : ''}">${report.urgency}</span>
+            <span class="${report.urgency === 'HIGH' ? 'urgency-HIGH' : ''}">${report.urgency}</span>
           </div>
           <div class="detail-row">
             <span class="label">Standort</span>
-            <span class="value">${report.address || '-'}<br>
-              <a href="https://www.google.com/maps?q=${report.latitude},${report.longitude}" target="_blank">📍 Auf Karte anzeigen</a>
+            <span>${report.address || '-'}<br>
+              <a href="https://www.google.com/maps?q=${report.latitude},${report.longitude}" target="_blank" style="color: var(--matrix-green);">📍 Auf Karte anzeigen</a>
             </span>
           </div>
           <div class="detail-row">
             <span class="label">Bezirk</span>
-            <span class="value">${report.district || '-'}</span>
+            <span>${report.district || '-'}</span>
           </div>
           <div class="detail-row">
             <span class="label">Erstellt</span>
-            <span class="value">${formatDate(report.createdAt)}</span>
+            <span>${formatDate(report.createdAt)}</span>
           </div>
           <div class="detail-row">
             <span class="label">Kontakt</span>
-            <span class="value">${report.contactEmail ? `<a href="mailto:${report.contactEmail}">${report.contactEmail}</a>` : '-'}</span>
+            <span>${report.contactEmail ? `<a href="mailto:${report.contactEmail}" style="color: var(--matrix-green);">${report.contactEmail}</a>` : '-'}</span>
           </div>
           
-          <div style="margin-top: 1.5rem;">
-            <strong style="color: var(--berlin-gray-600);">Beschreibung:</strong>
-            <div class="description-box">${report.comment}</div>
+          <div style="margin-top: 1rem;">
+            <strong>Beschreibung:</strong>
+            <p style="background: rgba(0, 20, 0, 0.6); padding: 1rem; margin-top: 0.5rem;">${report.comment}</p>
           </div>
           
           ${report.photos && report.photos.length > 0 ? `
-            <div style="margin-top: 1.5rem;">
-              <strong style="color: var(--berlin-gray-600);">Fotos:</strong>
-              <div class="detail-photos">
-                ${report.photos.map(p => `<img src="/uploads/${p.storagePath.split('/').pop()}" alt="${p.filename}">`).join('')}
-              </div>
+            <div class="detail-photos">
+              ${report.photos.map(p => `<img src="/uploads/${p.storagePath.split('/').pop()}" alt="${p.filename}">`).join('')}
             </div>
           ` : ''}
           
           ${currentAdmin.role === 'ADMIN' ? `
             <div class="detail-actions">
-              <select id="statusSelect">
+              <select id="statusSelect" style="padding: 0.5rem; border: 1px solid var(--matrix-green-dark); background: var(--matrix-bg); color: var(--matrix-green);">
                 <option value="SUBMITTED" ${report.status === 'SUBMITTED' ? 'selected' : ''}>Eingereicht</option>
                 <option value="FORWARDED" ${report.status === 'FORWARDED' ? 'selected' : ''}>Weitergeleitet</option>
                 <option value="IN_PROGRESS" ${report.status === 'IN_PROGRESS' ? 'selected' : ''}>In Bearbeitung</option>
                 <option value="DONE" ${report.status === 'DONE' ? 'selected' : ''}>Erledigt</option>
               </select>
-              <button class="btn btn--sm" onclick="changeStatus('${report.id}')">Status ändern</button>
-              <button class="btn btn--sm btn--ghost" onclick="reforward('${report.id}')">Erneut weiterleiten</button>
+              <button class="btn" onclick="changeStatus('${report.id}')">Status ändern</button>
+              <button class="btn btn--ghost" onclick="reforward('${report.id}')">Erneut weiterleiten</button>
             </div>
           ` : ''}
           
           <div class="audit-log">
-            <h4>📜 Bearbeitungsprotokoll</h4>
+            <h4>Protokoll</h4>
             ${report.auditLogs.map(log => `
               <div class="audit-item">
                 <strong>${formatAuditAction(log.action)}</strong>
                 ${log.details.recipientName ? ` → ${log.details.recipientName}` : ''}
                 ${log.details.oldStatus ? ` (${STATUS_LABELS[log.details.oldStatus]} → ${STATUS_LABELS[log.details.newStatus]})` : ''}
                 <br>
-                <span style="font-size: 0.8rem; color: var(--berlin-gray-500);">${formatDate(log.timestamp)} • ${log.performedBy}</span>
+                <span style="font-size: 0.8rem; color: var(--matrix-green-dark);">${formatDate(log.timestamp)} • ${log.performedBy}</span>
               </div>
             `).join('')}
           </div>
@@ -749,12 +628,12 @@
         
         if (!response.ok) throw new Error('Fehler beim Ändern des Status');
         
-        alert('✅ Status erfolgreich geändert!');
+        alert('Status geändert!');
         modal.classList.remove('active');
         loadReports(currentPage);
         loadStats();
       } catch (e) {
-        alert('❌ Fehler: ' + e.message);
+        alert('Fehler: ' + e.message);
       }
     }
     
@@ -773,11 +652,11 @@
         
         if (!response.ok) throw new Error(data.message || 'Fehler');
         
-        alert(`✅ Meldung erneut an ${data.forwardedTo} weitergeleitet!`);
+        alert(`Meldung erneut an ${data.forwardedTo} weitergeleitet!`);
         modal.classList.remove('active');
         loadReports(currentPage);
       } catch (e) {
-        alert('❌ Fehler: ' + e.message);
+        alert('Fehler: ' + e.message);
       }
     }
     
