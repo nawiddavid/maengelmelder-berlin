@@ -10,6 +10,8 @@ import { reportsRouter } from './routes/reports.route.js';
 import { adminRouter } from './routes/admin.route.js';
 import { authRouter } from './routes/auth.route.js';
 import * as routingService from './services/routing.service.js';
+import * as adminRepo from './repositories/admin.repository.js';
+import bcrypt from 'bcrypt';
 
 const app = express();
 
@@ -23,9 +25,11 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    // secure nur wenn explizit HTTPS aktiviert (nicht automatisch in production)
+    secure: process.env.COOKIE_SECURE === 'true',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 Stunden
+    maxAge: 24 * 60 * 60 * 1000, // 24 Stunden
+    sameSite: 'lax'
   }
 }));
 
@@ -59,6 +63,30 @@ app.use(errorHandler);
 routingService.seedDefaultRules().catch(err => {
   log('error', `Failed to seed routing rules: ${err.message}`);
 });
+
+// Initialisierung: Default Admin erstellen (falls noch keiner existiert)
+async function seedDefaultAdmin() {
+  try {
+    const admins = await adminRepo.findAll();
+    if (admins.length === 0) {
+      const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
+      const passwordHash = await bcrypt.hash(defaultPassword, 10);
+      
+      await adminRepo.createAdmin({
+        email: 'admin@maengelmelder.de',
+        passwordHash,
+        name: 'Administrator',
+        role: 'ADMIN'
+      });
+      
+      log('init', 'Default admin created: admin@maengelmelder.de');
+    }
+  } catch (err) {
+    log('error', `Failed to seed admin: ${err.message}`);
+  }
+}
+
+seedDefaultAdmin();
 
 export default app;
 
