@@ -113,6 +113,78 @@ router.get('/me', requireAuth, async (req, res, next) => {
 });
 
 /**
+ * GET /api/auth/debug
+ * Debug-Informationen (nur für Diagnose)
+ */
+router.get('/debug', async (req, res, next) => {
+  try {
+    const admins = await adminRepo.findAll();
+    
+    res.json({
+      database: 'connected',
+      adminCount: admins.length,
+      admins: admins.map(a => ({ email: a.email, role: a.role })),
+      session: {
+        adminId: req.session?.adminId || null
+      },
+      env: {
+        NODE_ENV: process.env.NODE_ENV || 'not set',
+        DATABASE_URL: process.env.DATABASE_URL ? 'set' : 'not set',
+        COOKIE_SECURE: process.env.COOKIE_SECURE || 'not set'
+      }
+    });
+  } catch (error) {
+    res.json({
+      database: 'error',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/auth/seed-admin
+ * Erstellt Admin falls keiner existiert (für Deployment)
+ */
+router.get('/seed-admin', async (req, res, next) => {
+  try {
+    const admins = await adminRepo.findAll();
+    
+    if (admins.length > 0) {
+      return res.json({
+        success: false,
+        message: `${admins.length} Admin(s) existieren bereits`,
+        admins: admins.map(a => a.email)
+      });
+    }
+    
+    // Default Admin erstellen
+    const defaultPassword = 'admin123';
+    const passwordHash = await bcrypt.hash(defaultPassword, 10);
+    
+    const admin = await adminRepo.createAdmin({
+      email: 'admin@maengelmelder.de',
+      passwordHash,
+      name: 'Administrator',
+      role: 'ADMIN'
+    });
+    
+    log('auth', 'Default admin seeded via endpoint');
+    
+    res.json({
+      success: true,
+      message: 'Admin erstellt',
+      email: admin.email,
+      password: defaultPassword
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * POST /api/auth/setup
  * Initialer Admin-Setup (nur wenn noch kein Admin existiert)
  */
